@@ -1,0 +1,21 @@
+FROM ubuntu:22.10 as build
+
+# setup environment
+RUN apt-get update \
+&&  apt-get install -y python3-pip \
+&&  rm -rf /var/lib/apt/lists/*
+
+# get python packages
+RUN pip install art
+
+# setup /workspace in container
+RUN mkdir -p /workspace
+COPY . /workspace
+
+# Use another layer!
+FROM python:3.10-slim
+COPY --from=build /workspace /workspace
+COPY --from=build /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
+
+ENV PYTHONPATH /usr/local/lib/python3.10/dist-packages
+CMD ["python3", "/workspace/ciao.py"]
